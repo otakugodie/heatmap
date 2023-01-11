@@ -5,7 +5,7 @@ from folium.plugins import HeatMap
 
 
 # Getting the locations and saving to a Pandas data frame
-map_df = pd.read_csv("EnergiaConsumida2022MOBIE-HeatMap.csv")
+map_df = pd.read_csv("ECMOBIE-HeatMap-Resume.csv")
 #print(map_df.head())
 
 #Keeping only the columns I need
@@ -54,7 +54,7 @@ for i in range(0,len(map_df)):
 
 
 
-for i, j in map_df:
+for i, j in map_df.groupby('Postos'):
     feature_group = folium.FeatureGroup(i)
     for row in j.itertuples():
         folium.Marker(location=[map_df.iloc[i]['latitude'], map_df.iloc[i]['longitude']], popup=map_df.iloc[i]['energiaConsumida2022']).add_to(feature_group)
