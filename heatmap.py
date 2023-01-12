@@ -1,16 +1,19 @@
 import pandas as pd
 import os
 import folium
+import webbrowser
 from folium.plugins import HeatMap
+from folium.plugins import MarkerCluster
 
 
 # Getting the locations and saving to a Pandas data frame
 map_df = pd.read_csv("ECMOBIE-HeatMap-Resume.csv")
+#map_df = pd.read_csv("EnergiaConsumida2022MOBIE-HeatMap.csv")
 #print(map_df.head())
 
 #Keeping only the columns I need
 map_df = map_df[["latitude", "longitude", "energiaConsumida2022"]]
-
+#print(map_df.head())
 
 # **************
 
@@ -28,7 +31,7 @@ bins = pd.cut(map_df['energiaConsumida2022'], bins=10)
 # Create a dictionary to define the gradient
 #gradient = bins.map(dict(zip(bins.unique(),colors)))
 #gradient={1: '#1e51ff', 13172: '#00c800', 26344: '#00ff00', 39515: '#80ff00', 52687:  '#ffff00', 65859: '#f8ba00', 79031: '#ff9d00', 92203: '#ff8000', 105374: '#ff4000', 118543: '#ff0000'}
-gradient={0.1: '#1e51ff', 0.2: '#00c800', 0.3: '#00ff00', 0.4: '#80ff00', 0.95:  '#ffff00', 0.96: '#f8ba00', 0.97: '#ff9d00', 0.98: '#ff8000', 0.99: '#ff4000', 1: '#ff0000'}
+gradient={0.1: '#1e51ff', 0.2: '#00c800', 0.3: '#00ff00', 0.4: '#80ff00', 0.5:  '#ffff00', 0.6: '#f8ba00', 0.7: '#ff9d00', 0.8: '#ff8000', 0.9: '#ff4000', 1: '#ff0000'}
 
 
 # **************
@@ -46,25 +49,29 @@ map = folium.Map(location=[map_df.latitude.mean(), map_df.longitude.mean()], zoo
 #HeatMap(map_df, min_opacity=0.6, radius=17, gradient=gradient, blur=15).add_to(folium.FeatureGroup(name='Heat Map Energia Consumida 2022').add_to(map))
 heatmap=HeatMap(map_df, min_opacity=0.6, radius=17, gradient=gradient, blur=15).add_to(folium.FeatureGroup(name='Heat Map Energia Consumida 2022').add_to(map))
 
+
 """
 # Add markers
+feature_group=folium.FeatureGroup(name="Postos", show=False)
 for i in range(0,len(map_df)):
-    folium.Marker(location=[map_df.iloc[i]['latitude'], map_df.iloc[i]['longitude']], popup=map_df.iloc[i]['energiaConsumida2022']).add_to(map)
+    folium.Marker(location=[map_df.iloc[i]['latitude'], map_df.iloc[i]['longitude']], popup=map_df.iloc[i]['energiaConsumida2022']).add_to(feature_group)
+#map.add_child(feature_group)
+feature_group.add_to(map)
 """
 
 
+# Add markers with FastMarkerCluster
+feature_group=folium.FeatureGroup(name="Postos", show=False)
+#marker_cluster = folium.plugins.FastMarkerCluster(name="Cluster Postos").add_to(map)
+#FastMarkerCluster
+for i in range(0,len(map_df)):
+    my_markers=folium.Marker(location=[map_df.iloc[i]['latitude'], map_df.iloc[i]['longitude']], popup=map_df.iloc[i]['energiaConsumida2022']).add_to(feature_group)
+    print(type(my_markers))
+#folium.plugins.FastMarkerCluster(my_markers).add_to(map)    
 
-for i, j in map_df.groupby('Postos'):
-    feature_group = folium.FeatureGroup(i)
-    for row in j.itertuples():
-        folium.Marker(location=[map_df.iloc[i]['latitude'], map_df.iloc[i]['longitude']], popup=map_df.iloc[i]['energiaConsumida2022']).add_to(feature_group)
-    feature_group.add_to(mapa)
-
-
+#feature_group.add_to(map)
 
 folium.LayerControl().add_to(map)
-
-
 
 map.save(os.path.join('results', 'HeatmapPortugal.html')) 
 
